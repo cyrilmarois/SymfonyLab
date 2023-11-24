@@ -1,17 +1,34 @@
 security:
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: "auto"
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+
+    # https://symfony.com/doc/current/security/authenticator_manager.html
+    enable_authenticator_manager: true
+
     providers:
-        users_in_memory: { memory: null }
+        # users_in_memory: { memory: null }
+        users:
+            entity:
+                class: App\Entity\User
+                property: email
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
-            lazy: true
-            provider: users_in_memory
+            stateless: true
+            # lazy: true
+            # provider: users_in_memory
+            provider: users
+            json_login:
+                check_path: auth # The name in routes.yaml is enough for mapping
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+            jwt: ~
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -24,6 +41,26 @@ security:
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
+
+        ### POKEMON ###
+        - { path: ^/api/v1/pokema, roles: PUBLIC_ACCESS, methods: [GET, HEAD] } # Allows all to get pokemons info
+
+        - {
+              path: ^/api/v1/pokema,
+              roles: PUBLIC_ACCESS, # TODO when token is implement change for IS_AUTHENTICATED_FULLY,
+              methods: [POST, PUT, PATCH, DELETE],
+          } # allow only authenticated to operate pokemons
+
+        ### TYPE ###
+        - { path: ^/api/v1/types, roles: PUBLIC_ACCESS, methods: [GET, HEAD] } # Allows all to get types info
+
+        ### USERS ###
+        - { path: ^/api/v1/users, roles: ROLE_ADMIN, methods: [GET, HEAD] } # Allows only admin to manage users
+
+        - { path: ^/$, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI
+        - { path: ^/docs, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI docs
+        - { path: ^/auth, roles: PUBLIC_ACCESS }
+        - { path: ^/, roles: PUBLIC_ACCESS }
 
 when@test:
     security:

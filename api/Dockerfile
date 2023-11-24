@@ -34,12 +34,13 @@ RUN set -eux; \
 		intl \
 		opcache \
 		zip \
+		mongodb \
     ;
 
 ###> recipes ###
 ###> doctrine/doctrine-bundle ###
 RUN set -eux; \
-    install-php-extensions pdo_pgsql
+    install-php-extensions pdo_pgsql pdo_mysql mongodb
 ###< doctrine/doctrine-bundle ###
 ###< recipes ###
 
